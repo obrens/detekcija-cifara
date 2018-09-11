@@ -1,11 +1,10 @@
 import math
-
 import cv2
 import numpy as np
 from scipy import ndimage
 from skimage import color
-from skimage.measure import label
 from skimage.measure import regionprops
+from skimage.measure import label
 from sklearn.datasets import fetch_mldata
 
 
@@ -66,8 +65,8 @@ def hofova(video):
 
         x0 = 1000
         y0 = 1000
-        x1 = -10
-        y1 = -10
+        x1 = -1000
+        y1 = -1000
         threshold1 = 50
         threshold2 = 150
         aperture_size = 3
@@ -116,18 +115,16 @@ def projTackuNaDuz(tacka, pocetak, kraj):
 
 def pozicionirajSliku(slikaCB):
     slika = np.zeros((28, 28), np.uint8)
-    x1 = -10
+    x1 = -1000
     x2 = 1000
-    y1 = -10
+    y1 = -1000
     y2 = 1000
 
-    z = 0
-
     try:
-        labelaSlika = label(slikaCB)
-        regije = regionprops(labelaSlika)
-        while (len(regije) > z):
-            okvir = regije[z].bbox
+        labeliranaSlika = label(slikaCB)
+        regije = regionprops(labeliranaSlika)
+        for regija in regije:
+            okvir = regija.bbox
             if okvir[0] < x2:
                 x2 = okvir[0]
             if okvir[1] < y2:
@@ -136,18 +133,17 @@ def pozicionirajSliku(slikaCB):
                 x1 = okvir[2]
             if okvir[3] > y1:
                 y1 = okvir[3]
-            z += 1
 
         poHorizontali = x1 - x2
         poVertikali = y1 - y2
-        slika[0: poHorizontali, 0: poVertikali] = slika[0: poHorizontali, 0: poVertikali] + slikaCB[x2: x1, y2: y1]
+        slika[0: poHorizontali, 0: poVertikali] = slikaCB[x2: x1, y2: y1]
         return slika
     except ValueError:
         pass
 
 
 def prepoznajCifru(slika):
-    slikaCB = ((color.rgb2gray(slika) / 255.0) > 0.80).astype('uint8')
+    slikaCB = ((color.rgb2gray(slika) / 255.0) > 0.90).astype('uint8')
     slika = pozicionirajSliku(slikaCB)
     minRazlika = 10000
     rez = -1
